@@ -10,13 +10,22 @@ app.use(express.json());
 var genNum = 1;
 var num = 10;
 var person = [
-    { fullName: 'Mary-Anne Smith',
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQKikw9YXA_GT-In3b47TA-2bNWBTgfwnuJPUMoiVIPs17cD4nr',
-    answer: [ '4', '5', '1', '1', '1', '1', '4', '1', '4', '1' ] },
-    { fullName: 'Robert Taylor',
-  image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRq07Ly7RP7F_HHglagp357KJWMgADNkLkro1qn8kttM7fCTofY',
-  answer: [ '4', '5', '1', '1', '1', '1', '4', '1', '4', '1' ] }
+    {
+        fullName: 'Mary-Anne Smith',
+        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQKikw9YXA_GT-In3b47TA-2bNWBTgfwnuJPUMoiVIPs17cD4nr',
+        answer: ['4', '5', '6', '6', '6', '6', '4', '6', '4', '2']
+    },
+    {
+        fullName: 'Robert Taylor',
+        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSUZe87p8UmQ3uURn0SHYSp0lAEQm8sxBTDlUYSlwLKX1MnGDrd',
+        answer: ['6', '2', '1', '1', '2', '2', '4', '2', '4', '3']
+    }
 ];
+var diff = 0;
+var diffArray = [];
+var smallestNum = 0;
+var closestMatch = 0;
+
 var question = [
     {
         num: 1,
@@ -60,41 +69,54 @@ var question = [
     }
 ]
 
-app.get("/survey", function(req, res) {
+app.get("/survey", function (req, res) {
     res.sendFile(path.join(__dirname, "/survey.html"));
 });
-app.get("/survey", function(req, res) {
-    res.sendFile(path.join(__dirname, "/survey.html"));
-});
-app.get("/api/question", function(req, res) {
+
+
+app.get("/api/question", function (req, res) {
     return res.json(question);
 });
 
-app.post("/api/answer", function(req,res){
+app.post("/api/answer", function (req, res) {
 
     var answer = req.body;
-    person.push(answer);
+    var matchFun = matchMaking(answer);
+    console.log("matchFun = " + matchFun.fullName)
+    res.json(matchFun);
 
-    // Something wrong with this function)
-    var diff = matchMaking(answer);
-    res.json(diff);
 })
 
-app.listen(PORT, function() {
+app.listen(PORT, function () {
     console.log("App listening on PORT ", PORT);
-  });
+});
 
 function matchMaking(data) {
     //var matchScore = [];
-    var diff = 0;
+
     console.log("DATA", data);
     console.log("PERSON", person);
-    for (i = 0; i < person.length; i++) {
-            console.log(parseInt(data.answer[i]));
-            console.log(parseInt(person[0].answer[i]));
-            diff += Math.abs(parseInt(data.answer[i]) - parseInt(person[0].answer[i])); 
-            //matchScore.push(diff);
+
+    for (e = 0; e < person.length; e++) {
+
+        diff = 0;
+
+        for (i = 0; i < person[e].answer.length; i++) {
+            diff += Math.abs(parseInt(data.answer[i]) - parseInt(person[e].answer[i]));
+            console.log("diff: " + diff);
+            if(i == 9) {
+                diffArray.push(diff);
+                console.log("Push to diffArray: " + diffArray);
+            }
+        }
+
+        smallestNum = Math.min.apply(null, diffArray);
+        closestMatch = diffArray.indexOf(smallestNum);
+        console.log("Closest Match is " + person[closestMatch].fullName);
+
     }
-    return diff;
-}  
-  
+
+    person.push(data);
+    return person[closestMatch];
+}
+
